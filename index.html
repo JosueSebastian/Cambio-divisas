@@ -54,6 +54,10 @@ select:hover{border-color:var(--stamp)}
 .retry{background:none;border:0;color:var(--stamp);font:inherit;font-weight:600;cursor:pointer;padding:0;text-decoration:underline}
 @media(max-width:560px){.note{padding:16px 14px}.note::after{width:32px;height:32px;top:-12px;right:14px;font-size:.75rem}.pair,.amounts{grid-template-columns:1fr}.eq{display:none}#swap{justify-self:center}.mid{display:flex;justify-content:flex-end;gap:6px}}
 @media(max-width:768px){html,body{overflow-x:hidden}body{padding:8px 12px}.note{padding:14px 12px;width:100%}.note::after{width:32px;height:32px;top:-12px;right:14px;font-size:.75rem}h1{font-size:1.4rem;margin-bottom:2px}.sub{margin-bottom:8px;font-size:.78rem}label{font-size:.75rem}select{padding:6px 8px;font-size:.88rem;text-align:center}.pair,.amounts{gap:6px;margin-top:8px}.amounts input{font-size:clamp(1.3rem,6vw,1.8rem);padding:4px 2px;text-align:center}.rate{margin:8px 0 2px;font-size:.9rem}.meta{font-size:.72rem;min-height:1em}#chart{max-height:40px}.clocks{font-size:.68rem;margin:4px 0 0;gap:4px;flex-wrap:nowrap}.clock{flex:1;min-width:0;justify-content:center}.clock-select{font-size:.66rem;padding:0 3px;max-width:100%}.copy-btn{width:30px;height:30px;font-size:.8rem}#credit{display:none}}
+.apoyo{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-left:8px;vertical-align:middle;border-radius:50%;border:1.5px solid rgba(247,240,226,.45);background:rgba(255,255,255,.12);color:#F2A0B3;text-decoration:none;transition:transform .2s,background .2s,color .2s}
+.apoyo[hidden]{display:none}
+.apoyo:hover{background:var(--stamp);color:#F7F0E2;transform:scale(1.12)}
+.apoyo:active{transform:scale(.92)}
 @media(prefers-reduced-motion:reduce){#swap{transition:none}.line{animation:none}}
 </style>
 </head>
@@ -112,7 +116,7 @@ select:hover{border-color:var(--stamp)}
   </div>
 
 
-  <p class="meta">Fondo y recuadro: Katsushika Hokusai, <i>La gran ola de Kanagawa</i>. Dominio público.</p>
+  <p class="meta">Fondo y recuadro: Katsushika Hokusai, <i>La gran ola de Kanagawa</i>. Dominio público. <a class="apoyo" id="apoyo" href="#" target="_blank" rel="noopener noreferrer" title="Apoyar el proyecto" aria-label="Apoyar el proyecto" hidden><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></a></p>
 </main>
 
 <script>
@@ -316,6 +320,11 @@ const copyBtn = $("copy");
 if (copyBtn) copyBtn.addEventListener("click", copyResult);
 
 // Mensaje de saludo según la hora
+// Pega aquí tu enlace de apoyo (Ko-fi, Buy Me a Coffee, PayPal.me...).
+// Si lo dejas vacío, el icono del corazón no se muestra.
+const ENLACE_APOYO = "https://ko-fi.com/yjzus";
+if (ENLACE_APOYO) { $("apoyo").href = ENLACE_APOYO; $("apoyo").hidden = false; }
+
 document.title = "Cambio de Divisas";
 if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js").catch(()=>{}); }
 loadCurrencies().then(refresh);
