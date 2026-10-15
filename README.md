@@ -7,15 +7,6 @@ Convertidor de divisas que funciona en el navegador, sin instalar nada. Escribes
 - Recuerda tus últimas monedas y cantidad en tu propio dispositivo.
 - Se puede instalar como app en el móvil.
 
-## Cómo publicarlo con GitHub Pages (gratis)
-
-1. Crea un repositorio **público** en GitHub (por ejemplo, `cambio-divisas`).
-2. Pulsa *Add file > Upload files* y arrastra todos los archivos de esta carpeta (`index.html`, `manifest.json`, `sw.js` y los iconos). Pulsa *Commit changes*.
-3. Ve a *Settings > Pages*. En *Build and deployment*, elige *Deploy from a branch*, rama `main` y carpeta `/ (root)`, y guarda.
-4. Espera uno o dos minutos. Tu página estará en `https://TU-USUARIO.github.io/cambio-divisas/`. Ese enlace es el que compartes con tus amigos.
-
-Los nombres de los menús de GitHub pueden cambiar un poco con el tiempo, pero el proceso es ese.
-
 ## Instalarlo en el móvil
 
 - **iPhone (Safari):** botón Compartir, *Añadir a pantalla de inicio*.
