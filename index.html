@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.frankfurter.dev; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F4E6D4">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -153,9 +155,12 @@ async function loadCurrencies() {
   try { names = await getJSON("/currencies"); }
   catch { names = { EUR: "Euro", USD: "Dólar estadounidense", GBP: "Libra esterlina", JPY: "Yen japonés", CHF: "Franco suizo", MXN: "Peso mexicano", ARS: "Peso argentino", CLP: "Peso chileno", COP: "Peso colombiano", PEN: "Sol peruano" }; }
   if (!names.EUR) names.EUR = "Euro";
-  const options = Object.keys(names).sort()
-    .map(c => `<option value="${c}">${c} - ${names[c]}</option>`).join("");
-  $("from").innerHTML = $("to").innerHTML = options;
+  const codes = Object.keys(names).sort();
+  ["from", "to"].forEach(id => {
+    const sel = $(id);
+    sel.textContent = "";
+    codes.forEach(c => sel.appendChild(new Option(c + " - " + names[c], c)));
+  });
 
   const prefs = loadPrefs();
   let from, to;
