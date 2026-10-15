@@ -128,6 +128,8 @@ const num = v => { const n = parseFloat(String(v).trim().replace(/\s/g, "").repl
 const fmt = n => Number.isFinite(n) ? String(+n.toFixed(Math.abs(n) < 1 ? 6 : 2)) : "";
 let rate = 1, series = [], turns = 0, req = 0, raf = 0, lastKey = "";
 let currentController = null;
+const JOD_POR_USD = 0.709; // paridad fija oficial del dinar jordano: 1 USD = 0,709 JOD
+let jodDerivada = false;
 
 const STORAGE_KEY = "cambio-divisas:v2";
 function loadPrefs() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; } }
@@ -144,7 +146,7 @@ async function getJSON(path, signal) {
 function guessDefaultCurrencies(names) {
   const lang = (navigator.language || "es-ES").toUpperCase();
   const region = lang.includes("-") ? lang.split("-")[1] : "ES";
-  const map = { ES:"EUR", US:"USD", GB:"GBP", MX:"MXN", AR:"ARS", CL:"CLP", CO:"COP", PE:"PEN", EC:"USD", FR:"EUR", DE:"EUR", IT:"EUR" };
+  const map = { ES:"EUR", US:"USD", GB:"GBP", MX:"MXN", AR:"ARS", CL:"CLP", CO:"COP", PE:"PEN", EC:"USD", FR:"EUR", DE:"EUR", IT:"EUR", JO:"JOD" };
   const from = map[region] && names[map[region]] ? map[region] : "EUR";
   const to = from === "EUR" ? "USD" : "EUR";
   return [from, to];
@@ -155,6 +157,8 @@ async function loadCurrencies() {
   try { names = await getJSON("/currencies"); }
   catch { names = { EUR: "Euro", USD: "Dólar estadounidense", GBP: "Libra esterlina", JPY: "Yen japonés", CHF: "Franco suizo", MXN: "Peso mexicano", ARS: "Peso argentino", CLP: "Peso chileno", COP: "Peso colombiano", PEN: "Sol peruano" }; }
   if (!names.EUR) names.EUR = "Euro";
+  // El BCE no publica el dinar jordano: se calcula a partir del dólar con la paridad fija.
+  if (!names.JOD) { names.JOD = "Dinar jordano"; jodDerivada = true; }
   const codes = Object.keys(names).sort();
   ["from", "to"].forEach(id => {
     const sel = $(id);
@@ -189,16 +193,25 @@ async function refresh() {
     show(changed); draw(false); return;
   }
   document.querySelector(".amounts").classList.add("loading");
-  let newRate, newSeries, day;
+  let newRate, newSeries, day = null, viaJod = false;
   try {
     const start = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
-    const hist = await getJSON(`/${start}..?from=${f}&to=${t}`, signal);
-    const dias = Object.keys(hist.rates).sort();
-    if (!dias.length) throw new Error("sin datos");
-    newSeries = dias.map(d => hist.rates[d][t]);
-    newRate = newSeries[newSeries.length - 1];
-    day = new Date(dias[dias.length - 1] + "T12:00:00")
-      .toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+    viaJod = jodDerivada && (f === "JOD" || t === "JOD");
+    const apiF = viaJod && f === "JOD" ? "USD" : f;
+    const apiT = viaJod && t === "JOD" ? "USD" : t;
+    const factor = viaJod ? (f === "JOD" ? 1 / JOD_POR_USD : JOD_POR_USD) : 1;
+    if (apiF === apiT) {
+      // Dólar <-> dinar jordano: es solo la paridad fija, no hay que consultar nada
+      newRate = factor; newSeries = [];
+    } else {
+      const hist = await getJSON(`/${start}..?from=${apiF}&to=${apiT}`, signal);
+      const dias = Object.keys(hist.rates).sort();
+      if (!dias.length) throw new Error("sin datos");
+      newSeries = dias.map(d => hist.rates[d][apiT] * factor);
+      newRate = newSeries[newSeries.length - 1];
+      day = new Date(dias[dias.length - 1] + "T12:00:00")
+        .toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+    }
   } catch (e) {
     if (id !== req || (e && e.name === "AbortError")) return;
     document.querySelector(".amounts").classList.remove("loading");
@@ -211,7 +224,11 @@ async function refresh() {
   lastKey = key; rate = newRate; series = newSeries;
   const arrow = (series.length > 1 && series[series.length-1] >= series[0]) ? "▲" : "▼";
   $("rate").textContent = `1 ${f} = ${fmt(rate)} ${t}  ${arrow}`;
-  $("status").textContent = `Tasa del ${day}, publicada por el Banco Central Europeo. Se actualiza sola cada 10 min.`;
+  $("status").textContent = !viaJod
+    ? `Tasa del ${day}, publicada por el Banco Central Europeo. Se actualiza sola cada 10 min.`
+    : (day
+        ? `Calculada desde el dólar con la paridad fija del Banco Central de Jordania (1 USD = 0,709 JOD). Tasa del ${day}, BCE.`
+        : "Paridad fija oficial del Banco Central de Jordania: 1 USD = 0,709 JOD.");
   show(changed); draw(changed);
   savePrefs({ from: f, to: t, amount: num($("amount").value) });
 }
